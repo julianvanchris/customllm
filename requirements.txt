@@ -1,0 +1,7 @@
+google-generativeai
+pandas
+numpy
+streamlit
+python-dotenv
+requests
+PyMuPDF
