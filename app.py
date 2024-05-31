@@ -6,11 +6,13 @@ import requests
 from dotenv import load_dotenv
 import os
 import fitz
+import json
+import random
 
 # Load environment variables
 load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("API_KEY")
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
 # Set up Google Gemini-Pro AI model
 genai.configure(api_key=GOOGLE_API_KEY)
@@ -78,23 +80,23 @@ def append_message(message: dict) -> None:
     return
 
 @st.cache_resource
-def load_model() -> genai.GenerativeModel:
+def load_model(model_name: str) -> genai.GenerativeModel:
     """
     The function `load_model()` returns an instance of the `genai.GenerativeModel` class initialized with the model name
     'gemini-pro'.
     :return: an instance of the `genai.GenerativeModel` class.
     """
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel(model_name)
     return model
 
 @st.cache_resource
-def load_modelvision() -> genai.GenerativeModel:
-    """
-    The function `load_modelvision` loads a generative model for vision tasks using the `gemini-pro-vision` model.
-    :return: an instance of the `genai.GenerativeModel` class.
-    """
-    model = genai.GenerativeModel('gemini-pro-vision')
-    return model
+# def load_modelvision() -> genai.GenerativeModel:
+#     """
+#     The function `load_modelvision` loads a generative model for vision tasks using the `gemini-pro-vision` model.
+#     :return: an instance of the `genai.GenerativeModel` class.
+#     """
+#     model = genai.GenerativeModel('gemini-1.0-pro-vision-latest')
+#     return model
 
 def extract_text_from_pdf(pdf_file):
     doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
@@ -107,9 +109,23 @@ def extract_text_from_pdf(pdf_file):
 #CONFIGURATION
 # genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
-model = load_model()
+text_models = [
+    "gemini-1.0-pro",
+    "gemini-1.0-pro-001",
+    "gemini-1.0-pro-latest",
+    "gemini-pro",
+]
 
-vision = load_modelvision()
+image_models = [
+    "gemini-1.0-pro-vision-latest",
+    "gemini-pro-vision"
+]
+
+selected_text_model = st.sidebar.selectbox("Select Text Model", text_models)
+selected_image_model = st.sidebar.selectbox("Select Image Model", image_models)
+
+model = load_model(selected_text_model)
+vision = load_model(selected_image_model)
 
 if 'chat' not in st.session_state:
     st.session_state.chat = model.start_chat(history=[])
